@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script  src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="css/estilo.css">
+</head>
+<body>
+
+    <div>
+
+        <table class="table">
+            <thead class="thead-light">
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Nome</th>
+                    <th scope="col">CPF</th>
+                    <th scope="col">Data de Nascimento</th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody id="tbody">        
+            </tbody>
+            </tr>
+        </table>
+
+        
+
+        <form class="formulario">
+            <div class="form-group">
+                <label for="exampleFormControlInput1">Nome</label>
+                <input type="text" class="form-control" id="FormControlInput1" placeholder="Nome" name="nome">
+            </div>
+            <div class="form-group">
+                <label for="exampleFormControlInput1">CPF</label>
+                <input type="text" class="form-control" id="FormControlInput2" placeholder="CPF" name="cpf">
+            </div>
+            <div class="form-group">
+                <label for="exampleFormControlInput1">Data de Nascimento</label>
+                <input type="date" class="form-control" id="FormControlInput3" placeholder="Data de Nascimento" name="birthdate">
+            </div>
+        </form>
+        <a href="javascript:void(0)" onClick="store()" class="btn btn-outline-success my-2 my-sm-0">Salvar</a>
+          
+          <!-- Modal -->
+          <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">Editar Dados <span id="titleEdit"></span> </h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <input type="hidden" id="idEdit" name="id">
+                        <div class="form-group">
+                            <label for="exampleFormControlInput1">Nome</label>
+                            <input type="text" class="form-control" id="nameEdit" placeholder="Nome" name="nome">
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleFormControlInput1">CPF</label>
+                            <input type="text" class="form-control" id="cpfEdit" placeholder="CPF" name="cpf">
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleFormControlInput1">Data de Nascimento</label>
+                            <input type="date" class="form-control" id="birthdateEdit" placeholder="Data de Nascimento" name="birthdate">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  <button type="button" onclick="update()" class="btn btn-primary">Salvar Alterações</button>
+                </div>
+              </div>
+            </div>
+          </div>
+    </div>
+          <script>
+                $(document).ready(function(){
+                    refresh()
+                })
+
+                    $('#id').val()
+                //Função para Gravar cliente
+                function store(){
+                    
+                    //Pegando valor por id
+                    //Pegando valor por nome
+                    
+                    //Objeto Cliente para pegar informações
+                    client = {
+                        "name":$('input[name = "nome"]').val(),
+                        "cpf": $('input[name = "cpf"]').val(),
+                        "birthdate": $('input[name = "birthdate"]').val()
+                        }
+
+                    $.ajax({
+                        type: "POST",
+                        dataType: "json",
+                        contentType : "application/json",
+                        crossDomain : true,
+                        data: JSON.stringify(client),
+                        url: 'http://54.147.244.100/api/customers',
+                        success: function(){refresh()},
+                        error: function(error){showErros(error.responseJSON.errors)}
+                    });
+                }
+
+                function showErros(erros){
+
+                    text = "A api retornou com os seguintes errros:\n"
+                    $.each(erros,function(index,value){
+                       text = text + index+": "+value+"\n"
+                    })
+                    alert(text)
+
+                }
+                
+
+                function refresh(){
+                    $.ajax({
+                        dataType: "json",
+                        url: 'http://54.147.244.100/api/customers',
+                        success: function(data){populate(data.data)}
+                    });
+                }
+                
+                function populate(dados){
+                    $('#tbody').html(null)
+                    $.each(dados,function(){ 
+                        $('#tbody').append(`
+                        <tr>
+                            <th scope="row">`+this.id+`</th>
+                            <td>`+this.name+`</td>
+                            <td>`+this.cpf+`</td>
+                            <td>`+this.birthdate+`</td>
+                            <td type=button onClick="edit(`+this.id+`)">EDITAR</td>
+                            <td type=button onClick="excluir(`+this.id+`)">EXCLUIR</td>
+                        </tr>
+                        `)
+                    })
+                }
+                
+                function edit(id){
+                    $.ajax({
+                        dataType: "json",
+                        url: 'http://54.147.244.100/api/customers/'+id,
+                        success: function(data){
+                            $('#titleEdit').html(data.name)
+                            $('#idEdit').val(data.id)
+                            $('#nameEdit').val(data.name)
+                            $('#cpfEdit').val(data.cpf)
+                            $('#birthdateEdit').val(data.birthdate)
+                            $('#editModal').modal('show')
+                        }
+                    });
+                    
+                }
+
+                function update(){
+
+                    client = {
+                        "name":$('#nameEdit').val(),
+                        "cpf": $('#idEdit').val(),
+                        "birthdate": $('#birthdateEdit').val()
+                        }
+
+                    $.ajax({
+                        type: "PUT",
+                        data: JSON.stringify(client),
+                        dataType: "json",
+                        url: 'http://54.147.244.100/api/customers/'+$('#idEdit').val(),
+                        success: function(){
+                            refresh()
+                            $('#editModal').modal('hide')
+                            alert('Registro Atualizado')
+                        },
+                        error: function(error){showErros(error.responseJSON.errors)}
+                    });
+
+                }
+
+                function excluir(valor){                    
+                    //Pegando valor por id
+                     $.ajax({
+                        type: "DELETE",
+                        dataType: "json",
+                        contentType : "application/json",
+                        url: 'http://54.147.244.100/api/customers/'+valor,
+                        success: function(){refresh()
+                                    alert('Registro Excluido')
+                                    },
+                        error: function(error){showErros(error.responseJSON.errors)}
+                    });
+                }
+
+
+ 
+
+        </script>
+
+
+
+</body>
+</html>
